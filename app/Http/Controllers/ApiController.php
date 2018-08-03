@@ -11,10 +11,12 @@ use App\Models\Order_goods;
 use App\Models\Shop;
 use App\Models\ShoppingCart;
 use App\SignatureHelper;
+use function foo\func;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Validator;
 use Mockery\Exception;
@@ -573,6 +575,7 @@ class ApiController extends Controller
                 'status' => 0,
                 'out_trade_no' => random_int(1000,99999),
             ]);
+
             foreach ($shops as $shop) {
                 Order_goods::create([
                     'order_id' => $order->id,
@@ -588,6 +591,66 @@ class ApiController extends Controller
             DB::roolback();
             throw $e;
         }
+        $tel = Auth::user()->tel;
+        $params = [];
+
+        // *** 需用户填写部分 ***
+
+        // fixme 必填: 请参阅 https://ak-console.aliyun.com/ 取得您的AK信息
+        $accessKeyId = "LTAIY8hBBtqqvhel";
+        $accessKeySecret = "ve7xkPfJYV2nzZMLH7EhF0xiLLF7Kc";
+
+        // fixme 必填: 短信接收号码
+        $params["PhoneNumbers"] = $tel;
+
+        // fixme 必填: 短信签名，应严格按"签名名称"填写，请参考: https://dysms.console.aliyun.com/dysms.htm#/develop/sign
+        $params["SignName"] = "任万琪";
+
+        // fixme 必填: 短信模板Code，应严格按"模板CODE"填写, 请参考: https://dysms.console.aliyun.com/dysms.htm#/develop/template
+        $params["TemplateCode"] = "SMS_140722140";
+
+        // fixme 可选: 设置模板参数, 假如模板中存在变量需要替换则为必填项
+        $shop_name = Shop::where('id',$shop_id)->first()->shop_name;
+        $params['TemplateParam'] = Array(
+            "name" => $shop_name,
+//            "product" => "阿里通信"
+        );
+
+
+        // fixme 可选: 设置发送短信流水号
+        $params['OutId'] = "12345";
+
+        // fixme 可选: 上行短信扩展码, 扩展码字段控制在7位或以下，无特殊需求用户请忽略此字段
+        $params['SmsUpExtendCode'] = "1234567";
+
+
+        // *** 需用户填写部分结束, 以下代码若无必要无需更改 ***
+        if (!empty($params["TemplateParam"]) && is_array($params["TemplateParam"])) {
+            $params["TemplateParam"] = json_encode($params["TemplateParam"], JSON_UNESCAPED_UNICODE);
+        }
+
+         //初始化SignatureHelper实例用于设置参数，签名以及发送请求
+        $helper = new SignatureHelper();
+
+        // 此处可能会抛出异常，注意catch
+        $content = $helper->request(
+            $accessKeyId,
+            $accessKeySecret,
+            "dysmsapi.aliyuncs.com",
+            array_merge($params, array(
+                "RegionId" => "cn-hangzhou",
+                "Action" => "SendSms",
+                "Version" => "2017-05-25",
+            ))
+        // fixme 选填: 启用https
+        // ,true
+        );
+        $r=\Illuminate\Support\Facades\Mail::raw('您有新的订单,请及时处理',function ($message){
+            $message->subject('订单提醒');
+            $message->to('a578393196@163.com');
+            $message->from('a578393196@163.com','jay');
+        });
+
         return [
             "status" => "true",
             "message" => "添加成功",

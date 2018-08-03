@@ -39,8 +39,24 @@ Route::prefix('api')->group(function (){
     Route::get('order','ApiController@order');
     // 获得订单列表接口
     Route::get('orderList','ApiController@orderList');
+//    Route::get('email',function (){
+//        $r=\Illuminate\Support\Facades\Mail::raw('订单提醒',function ($message){
+//            $message->subject('订单提醒');
+//            $message->to('a578393196@163.com');
+//            $message->from('a578393196@163.com','jay');
+//        });
+//        dd($r);
+//
+////        $r=\Illuminate\Support\Facades\Mail::send('welcome',[],function ($message){
+////            $message->to(['a578393196@qq.com'])->subject('美女统计报表');
+////        });
+//
+//        dd($r);
+//    });
     // 修改密码接口
     Route::post('changePassword','ApiController@changePassword');
     //忘记密码接口
     Route::post('forgetPassword','ApiController@forgetPassword');
+
+
 });
