@@ -98,29 +98,31 @@ class ApiController extends Controller
         $commodity = [];
         foreach ($menuscategories as $menuscategory) {
             $menus = Menus::where('category_id', $menuscategory->id)->get();
-            foreach ($menus as $menu) {
+            $goods_list = [];
+            foreach ($menus as $key=>$menu) {
+                $goods_list[]=
+                [
+                    'goods_id' => $menu->id,
+                    'goods_name' => $menu->goods_name,
+                    'rating' => $menu->rating,
+                    'goods_price' => $menu->goods_price,
+                    'description' => $menu->description,
+                    'month_sales' => $menu->month_sales,
+                    'rating_count' => $menu->rating_count,
+                    'tips' => $menu->tips,
+                    'satisfy_count' => $menu->satisfy_count,
+                    'satisfy_rate' => $menu->satisfy_rate,
+                    'goods_img' => $menu->goods_img,
+                ];
+            }
                 $commodity[] = [
                     'description' => $menuscategory->description,
                     'is_selected' => $menuscategory->is_selected,
                     'name' => $menuscategory->name,
                     'type_accumulation' => $menuscategory->type_accumulation,
-                    'goods_list' => [
-                        [
-                            'goods_id' => $menu->id,
-                            'goods_name' => $menu->goods_name,
-                            'rating' => $menu->rating,
-                            'goods_price' => $menu->goods_price,
-                            'description' => $menu->description,
-                            'month_sales' => $menu->month_sales,
-                            'rating_count' => $menu->rating_count,
-                            'tips' => $menu->tips,
-                            'satisfy_count' => $menu->satisfy_count,
-                            'satisfy_rate' => $menu->satisfy_rate,
-                            'goods_img' => $menu->goods_img,
-                        ]
-                    ],
+                    'goods_list' => $goods_list,
                 ];
-            }
+
 
         }
         $shop['commodity'] = $commodity;
@@ -773,6 +775,7 @@ class ApiController extends Controller
 
 
 }
+
 
 
 
