@@ -242,6 +242,7 @@ class ApiController extends Controller
                 'tel' => $request->tel,
                 'password' => bcrypt($request->password),
                 'remember_token' => 'abc',
+                'status'=>'1',
             ]);
             return json_encode([
                 'status' => "true",
